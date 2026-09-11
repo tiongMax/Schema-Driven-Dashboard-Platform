@@ -1,8 +1,9 @@
 const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "/api";
 
 export class ApiError extends Error {
-  constructor(message: string, public readonly status: number) {
-    super(message);
+  constructor(message: string, public readonly status: number, options?: ErrorOptions) {
+    super(message, options);
+    this.name = "ApiError";
   }
 }
 
@@ -41,14 +42,55 @@ function detailToMessage(detail: unknown): string {
 }
 
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: { "Content-Type": "application/json", ...options?.headers },
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: { "Content-Type": "application/json", ...options?.headers },
+    });
+  } catch (error) {
+    console.error("API request could not reach the server", { path, error });
+    throw new ApiError("Unable to reach the server. Check your connection and try again.", 0, {
+      cause: error,
+    });
+  }
 
-  const body = await response.json().catch(() => null);
+  let body: unknown = null;
+  let responseText: string;
+  try {
+    responseText = await response.text();
+  } catch (error) {
+    console.error("API response could not be read", { path, status: response.status, error });
+    throw new ApiError("The connection was interrupted. Please try again.", response.status, {
+      cause: error,
+    });
+  }
+
+  if (response.ok && !responseText) {
+    console.error("API returned an empty success response", { path, status: response.status });
+    throw new ApiError("The server returned an invalid response.", response.status);
+  }
+
+  if (responseText) {
+    try {
+      body = JSON.parse(responseText);
+    } catch (error) {
+      console.error("API returned a non-JSON response", { path, status: response.status, error });
+      throw new ApiError(
+        response.ok
+          ? "The server returned an invalid response."
+          : `The request failed with status ${response.status}.`,
+        response.status,
+        { cause: error },
+      );
+    }
+  }
+
   if (!response.ok) {
-    throw new ApiError(detailToMessage(body?.detail), response.status);
+    const detail = body && typeof body === "object"
+      ? (body as Record<string, unknown>).detail
+      : undefined;
+    throw new ApiError(detailToMessage(detail), response.status);
   }
   return body as T;
 }

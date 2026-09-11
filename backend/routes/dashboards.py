@@ -7,6 +7,8 @@ retrieval reads current schema rows and delegates computation to the dashboard
 engine.
 """
 
+import logging
+
 from fastapi import APIRouter, HTTPException
 
 from dashboard_engine import generate_dashboard
@@ -18,7 +20,7 @@ from schema_registry import schema_registry
 
 
 router = APIRouter()
-
+logger = logging.getLogger(__name__)
 
 @router.get("/dashboard/{name}")
 def get_dashboard(name: str) -> dict:
@@ -37,6 +39,8 @@ def get_dashboard(name: str) -> dict:
 
     Raises:
         HTTPException: HTTP 404 when the requested dashboard does not exist.
+        HTTPException: HTTP 500 when rows cannot be read or views cannot be
+            computed.
     """
     dashboard = dashboard_store.get(name)
     if dashboard is None:
@@ -46,10 +50,20 @@ def get_dashboard(name: str) -> dict:
         )
 
     rows = data_store.get_rows(dashboard.schema_name)
+
+    try:
+        views = generate_dashboard(dashboard, rows)
+    except Exception as error:
+        logger.exception("Failed to generate dashboard '%s'", name)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate dashboard views",
+        ) from error
+
     return {
         "success": True,
         "dashboard": name,
-        "views": generate_dashboard(dashboard, rows),
+        "views": views,
     }
 
 
@@ -91,6 +105,13 @@ def register_dashboard(request: DashboardRegisterRequest) -> dict:
         dashboard = dashboard_store.register(request)
     except DuplicateDashboardError as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
+
+    logger.info(
+        "Registered dashboard '%s' schema='%s' view_count=%d",
+        dashboard.name,
+        dashboard.schema_name,
+        len(dashboard.views),
+    )
 
     return {
         "success": True,

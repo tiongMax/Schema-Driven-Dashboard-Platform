@@ -5,15 +5,19 @@ This module defines the endpoints used for interacting with the SchemaRegistry,
 including creating new schemas and retrieving existing ones.
 """
 
+import logging
+from typing import Any
+
 from fastapi import APIRouter, HTTPException
 from models import SchemaRegisterRequest
 from schema_registry import schema_registry, DuplicateSchemaError
 
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.post("/schema", status_code=201)
-def register_schema(payload: SchemaRegisterRequest) -> dict:
+def register_schema(payload: SchemaRegisterRequest) -> dict[str, Any]:
     """
     Register a newly defined schema with the system.
     
@@ -29,6 +33,12 @@ def register_schema(payload: SchemaRegisterRequest) -> dict:
     """
     try:
         schema = schema_registry.register(payload)
-    except DuplicateSchemaError as e:
-        raise HTTPException(status_code=409, detail=str(e))
+    except DuplicateSchemaError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+
+    logger.info(
+        "Registered schema '%s' field_count=%d",
+        schema.name,
+        len(schema.fields),
+    )
     return {"success": True, "schema": schema}

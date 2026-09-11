@@ -5,16 +5,21 @@ This module exposes the main API endpoint for ingesting new dynamic rows. It orc
 structural mapping, deep business validation, and ultimate storage execution. 
 """
 
+import logging
+from typing import Any
+
 from fastapi import APIRouter, HTTPException
 from models import IngestRequest
 from schema_registry import schema_registry
 from validation import validate_batch
 from data_store import data_store
 
+
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 @router.post("/ingest", status_code=201)
-def ingest(request: IngestRequest):
+def ingest(request: IngestRequest) -> dict[str, Any]:
     """
     Ingest a batch of dynamic rows against a registered dashboard schema.
 
@@ -61,10 +66,18 @@ def ingest(request: IngestRequest):
         request.schema_name,
         request.rows,
     )
+    duplicates_skipped = len(request.rows) - rows_ingested
+
+    logger.info(
+        "Ingested rows schema='%s' inserted=%d duplicates_skipped=%d",
+        request.schema_name,
+        rows_ingested,
+        duplicates_skipped,
+    )
 
     return {
         "success": True,
         "schema": request.schema_name,
         "rows_ingested": rows_ingested,
-        "duplicates_skipped": len(request.rows) - rows_ingested,
+        "duplicates_skipped": duplicates_skipped,
     }

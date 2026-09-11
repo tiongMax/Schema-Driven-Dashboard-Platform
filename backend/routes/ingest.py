@@ -57,7 +57,7 @@ def ingest(request: IngestRequest):
             },
         )
 
-    data_store.insert_batch(
+    rows_ingested = data_store.insert_batch(
         request.schema_name,
         request.rows,
     )
@@ -65,5 +65,6 @@ def ingest(request: IngestRequest):
     return {
         "success": True,
         "schema": request.schema_name,
-        "rows_ingested": len(request.rows),
+        "rows_ingested": rows_ingested,
+        "duplicates_skipped": len(request.rows) - rows_ingested,
     }

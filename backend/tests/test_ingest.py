@@ -60,6 +60,47 @@ def test_ingest_success_and_storage():
     assert stored[0]["symbol"] == "AAPL"
 
 
+def test_repeated_rows_are_not_stored_twice():
+    """Submitting the same data twice should not duplicate dashboard rows."""
+    client.post("/schema", json={
+        "name": "trade",
+        "fields": [
+            {"name": "tradeId", "type": "string", "required": True},
+            {"name": "amount", "type": "number", "required": True},
+        ],
+    })
+    payload = {
+        "schema": "trade",
+        "rows": [
+            {"tradeId": "ORD-101", "amount": 1240},
+            {"tradeId": "ORD-102", "amount": 860},
+        ],
+    }
+
+    first = client.post("/ingest", json=payload)
+    second = client.post("/ingest", json=payload)
+
+    assert first.json()["rows_ingested"] == 2
+    assert first.json()["duplicates_skipped"] == 0
+    assert second.json()["rows_ingested"] == 0
+    assert second.json()["duplicates_skipped"] == 2
+    assert data_store.get_rows("trade") == payload["rows"]
+
+
+def test_rows_with_the_same_shape_remain_isolated_by_schema():
+    """Two schemas may contain the same rows without combining their datasets."""
+    fields = [{"name": "tradeId", "type": "string", "required": True}]
+    client.post("/schema", json={"name": "trades-a", "fields": fields})
+    client.post("/schema", json={"name": "trades-b", "fields": fields})
+    rows = [{"tradeId": "ORD-101"}, {"tradeId": "ORD-102"}]
+
+    client.post("/ingest", json={"schema": "trades-a", "rows": rows})
+    client.post("/ingest", json={"schema": "trades-b", "rows": rows})
+
+    assert data_store.get_rows("trades-a") == rows
+    assert data_store.get_rows("trades-b") == rows
+
+
 def test_ingest_failure_nothing_stored():
     """Test atomic batch ingestion: if one fails, nothing is stored."""
     # Register schema

@@ -23,7 +23,7 @@ class DataStore:
         self,
         schema_name: str,
         rows: list[dict[str, Any]],
-    ) -> None:
+    ) -> int:
         """
         Store a fully validated batch of rows.
         
@@ -31,10 +31,19 @@ class DataStore:
             schema_name (str): The string identifier matching a registered schema.
             rows (list[dict[str, Any]]): The list of validated row dictionaries to store.
         """
-        self._data.setdefault(schema_name, [])
-        self._data[schema_name].extend(
-            row.copy() for row in rows
-        )
+        stored_rows = self._data.setdefault(schema_name, [])
+        rows_inserted = 0
+
+        for row in rows:
+            # Re-submitting the same batch from the UI should be idempotent.
+            # Data remains isolated by schema name, and only exact duplicates
+            # within that schema are skipped.
+            if row in stored_rows:
+                continue
+            stored_rows.append(row.copy())
+            rows_inserted += 1
+
+        return rows_inserted
 
     def get_rows(
         self,

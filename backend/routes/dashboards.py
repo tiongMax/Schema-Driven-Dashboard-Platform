@@ -1,19 +1,56 @@
 """
 API routing for dashboard configuration management.
 
-The endpoint in this module coordinates structural request parsing, referenced
-schema lookup, business validation, and persistent in-memory registration.
+The endpoints in this module coordinate dashboard registration and live
+execution. Registration performs schema-aware validation before storage, while
+retrieval reads current schema rows and delegates computation to the dashboard
+engine.
 """
 
 from fastapi import APIRouter, HTTPException
 
+from dashboard_engine import generate_dashboard
 from dashboard_store import dashboard_store, DuplicateDashboardError
 from dashboard_validation import validate_dashboard
+from data_store import data_store
 from models import DashboardRegisterRequest
 from schema_registry import schema_registry
 
 
 router = APIRouter()
+
+
+@router.get("/dashboard/{name}")
+def get_dashboard(name: str) -> dict:
+    """
+    Compute a registered dashboard from its schema's current stored rows.
+
+    Dashboard results are generated on every request rather than persisted, so
+    newly ingested rows are reflected immediately.
+
+    Args:
+        name (str): Unique identifier of the dashboard to execute.
+
+    Returns:
+        dict: Success status, dashboard name, and computed views in configured
+        order.
+
+    Raises:
+        HTTPException: HTTP 404 when the requested dashboard does not exist.
+    """
+    dashboard = dashboard_store.get(name)
+    if dashboard is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Dashboard '{name}' not found",
+        )
+
+    rows = data_store.get_rows(dashboard.schema_name)
+    return {
+        "success": True,
+        "dashboard": name,
+        "views": generate_dashboard(dashboard, rows),
+    }
 
 
 @router.post("/dashboard", status_code=201)

@@ -5,7 +5,7 @@ This module contains the basic models used for registering and validating
 schema definitions for our dashboard components.
 """
 
-from typing import List, Literal, Optional
+from typing import Any, List, Literal, Optional
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -54,3 +54,16 @@ class SchemaRegisterRequest(BaseModel):
         if len(names) != len(set(names)):
             raise ValueError("duplicate field names in schema")
         return fields
+
+
+class IngestRequest(BaseModel):
+    """
+    Request model for ingesting dynamic rows against a registered schema.
+    
+    Attributes:
+        schema_name (str): The registered schema identifier this batch targets. 
+                           Aliased to `schema` for JSON payloads.
+        rows (list[dict[str, Any]]): The list of arbitrary dynamic data rows.
+    """
+    schema_name: str = Field(alias="schema")
+    rows: list[dict[str, Any]]

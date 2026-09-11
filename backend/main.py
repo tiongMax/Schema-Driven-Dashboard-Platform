@@ -7,6 +7,7 @@ all the standard routers needed for the backend services.
 
 from fastapi import FastAPI
 from routes.schemas import router as schema_router
+from routes.ingest import router as ingest_router
 
 
 app = FastAPI(
@@ -15,3 +16,4 @@ app = FastAPI(
     version="1.0.0",
 )
 app.include_router(schema_router)
+app.include_router(ingest_router)

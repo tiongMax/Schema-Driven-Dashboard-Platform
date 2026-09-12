@@ -1,9 +1,4 @@
-import sys
-import os
-
-sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-
-from validation import matches_type, validate_row, validate_batch
+from app.services.row_validation import matches_type, validate_batch, validate_row
 
 
 def test_matches_type():

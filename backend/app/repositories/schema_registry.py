@@ -6,7 +6,7 @@ that schemas are uniquely named and retrievable.
 """
 
 from typing import Dict, Optional
-from models import SchemaRegisterRequest
+from app.schemas.models import SchemaRegisterRequest
 
 
 class DuplicateSchemaError(Exception):

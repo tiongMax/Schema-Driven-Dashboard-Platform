@@ -1,15 +1,10 @@
-import os
-import sys
-
 import pytest
 from fastapi.testclient import TestClient
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-
-from dashboard_store import dashboard_store
-from data_store import data_store
-from main import app
-from schema_registry import schema_registry
+from app.main import app
+from app.repositories.dashboard_store import dashboard_store
+from app.repositories.data_store import data_store
+from app.repositories.schema_registry import schema_registry
 
 
 client = TestClient(app)

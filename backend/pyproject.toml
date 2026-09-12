@@ -1,8 +1,7 @@
 [project]
 name = "backend"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
+description = "FastAPI backend for schema-driven ingestion and dashboards"
 requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.141.1",
@@ -16,6 +15,8 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
 filterwarnings = [
     "ignore:.*starlette.testclient.*",
     "ignore:.*anyio.abc.BlockingPortal.*"

@@ -1,14 +1,8 @@
-import sys
-import os
-
-# Add the parent directory (backend root) to the python path so we can import 'main'
-sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-
 from fastapi.testclient import TestClient
 import pytest
 
-from main import app
-from schema_registry import schema_registry
+from app.main import app
+from app.repositories.schema_registry import schema_registry
 
 client = TestClient(app)
 

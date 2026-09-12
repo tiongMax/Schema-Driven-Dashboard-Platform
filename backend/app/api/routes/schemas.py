@@ -9,8 +9,8 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from models import SchemaRegisterRequest
-from schema_registry import schema_registry, DuplicateSchemaError
+from app.repositories.schema_registry import DuplicateSchemaError, schema_registry
+from app.schemas.models import SchemaRegisterRequest
 
 
 router = APIRouter()

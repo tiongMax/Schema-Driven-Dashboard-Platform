@@ -52,21 +52,20 @@ SchemaRegistry   DashboardStore
         DashboardEngine
 ```
 
-Representative backend structure:
+Backend structure:
 
 ```text
-app/
-├── main.py
-├── models.py
-├── schema_registry.py
-├── validation.py
-├── data_store.py
-├── dashboard_store.py
-├── dashboard_engine.py
-└── routes/
-    ├── schemas.py
-    ├── ingest.py
-    └── dashboards.py
+backend/
+├── app/
+│   ├── main.py                  # FastAPI application assembly
+│   ├── api/
+│   │   └── routes/              # HTTP endpoints and response handling
+│   ├── repositories/            # In-memory persistence implementations
+│   ├── schemas/                 # Pydantic request/configuration models
+│   └── services/                # Validation and dashboard business logic
+├── tests/                       # Backend test suite
+├── pyproject.toml               # Dependencies and Python tool configuration
+└── uv.lock                      # Reproducible dependency lockfile
 ```
 
 Responsibilities:
@@ -560,10 +559,16 @@ view order preserved
 
 # Running the Backend
 
-Install dependencies:
+Run backend commands from the `backend` directory:
 
 ```bash
-pip install -r requirements.txt
+cd backend
+```
+
+Install dependencies with uv (recommended):
+
+```bash
+uv sync
 ```
 
 Run FastAPI:
@@ -589,10 +594,10 @@ http://localhost:8000/docs
 # Running Tests
 
 ```bash
-pytest
+uv run pytest
 ```
 
-or:
+If the dependencies are already active in your environment:
 
 ```bash
 pytest -v

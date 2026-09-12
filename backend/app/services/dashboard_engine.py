@@ -8,7 +8,7 @@ does not handle HTTP concerns, configuration validation, or storage access.
 
 from typing import Any
 
-from models import DashboardRegisterRequest, SummaryView, TableView
+from app.schemas.models import DashboardRegisterRequest, SummaryView, TableView
 
 
 def compute_summary(
@@ -36,13 +36,13 @@ def compute_summary(
         ValueError: If the aggregation operation is unsupported.
     """
     values = [row[field] for row in rows if field in row]
-
+    if not values:
+        return 0 if aggregation in {"sum", "count"} else None
+    
     if aggregation == "count":
         return len(values)
     if aggregation == "sum":
         return sum(values)
-    if not values:
-        return None
     if aggregation == "avg":
         return sum(values) / len(values)
     if aggregation == "min":

@@ -6,7 +6,7 @@ confirmed that they are compatible with their referenced schemas. It does not
 execute views or read ingested data.
 """
 
-from models import DashboardRegisterRequest
+from app.schemas.models import DashboardRegisterRequest
 
 
 class DuplicateDashboardError(Exception):

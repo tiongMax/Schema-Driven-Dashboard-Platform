@@ -9,10 +9,10 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
-from models import IngestRequest
-from schema_registry import schema_registry
-from validation import validate_batch
-from data_store import data_store
+from app.repositories.data_store import data_store
+from app.repositories.schema_registry import schema_registry
+from app.schemas.models import IngestRequest
+from app.services.row_validation import validate_batch
 
 
 router = APIRouter()

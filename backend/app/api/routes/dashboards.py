@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException
 from app.repositories.dashboard_store import DuplicateDashboardError, dashboard_store
 from app.repositories.data_store import data_store
 from app.repositories.schema_registry import schema_registry
-from app.schemas.models import DashboardRegisterRequest
+from app.schemas.dashboard import DashboardRegisterRequest
 from app.services.dashboard_engine import generate_dashboard
 from app.services.dashboard_validation import validate_dashboard
 

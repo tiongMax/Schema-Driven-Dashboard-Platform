@@ -8,7 +8,7 @@ does not handle HTTP concerns, configuration validation, or storage access.
 
 from typing import Any
 
-from app.schemas.models import DashboardRegisterRequest, SummaryView, TableView
+from app.schemas.dashboard import DashboardRegisterRequest, SummaryView, TableView
 
 
 def compute_summary(

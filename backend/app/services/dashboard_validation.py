@@ -7,7 +7,7 @@ schema-dependent rules such as field existence and aggregation compatibility.
 
 from typing import Any
 
-from app.schemas.models import DashboardRegisterRequest
+from app.schemas.dashboard import DashboardRegisterRequest
 
 
 ALLOWED_AGGREGATIONS: dict[str, set[str]] = {

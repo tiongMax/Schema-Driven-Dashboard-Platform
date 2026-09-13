@@ -10,7 +10,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from app.repositories.schema_registry import DuplicateSchemaError, schema_registry
-from app.schemas.models import SchemaRegisterRequest
+from app.schemas.schema import SchemaRegisterRequest
 
 
 router = APIRouter()

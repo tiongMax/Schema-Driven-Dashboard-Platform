@@ -61,7 +61,10 @@ backend/
 │   ├── api/
 │   │   └── routes/              # HTTP endpoints and response handling
 │   ├── repositories/            # In-memory persistence implementations
-│   ├── schemas/                 # Pydantic request/configuration models
+│   ├── schemas/                 # Pydantic models grouped by API domain
+│   │   ├── schema.py            # Schema and field definitions
+│   │   ├── ingest.py            # Ingestion request model
+│   │   └── dashboard.py         # Dashboard and view models
 │   └── services/                # Validation and dashboard business logic
 ├── tests/                       # Backend test suite
 ├── pyproject.toml               # Dependencies and Python tool configuration

@@ -9,21 +9,22 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
+
 from app.repositories.schema_registry import DuplicateSchemaError, schema_registry
 from app.schemas.schema import SchemaRegisterRequest
 
-
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
 
 @router.post("/schema", status_code=201)
 def register_schema(payload: SchemaRegisterRequest) -> dict[str, Any]:
     """
     Register a newly defined schema with the system.
-    
-    This endpoint takes a SchemaRegisterRequest definition, checks for uniqueness, 
+
+    This endpoint takes a SchemaRegisterRequest definition, checks for uniqueness,
     and adds it to the global schema registry.
-    
+
     Args:
         payload (SchemaRegisterRequest): The JSON payload containing the schema definition.
     Returns:

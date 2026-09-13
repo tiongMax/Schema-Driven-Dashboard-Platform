@@ -18,9 +18,9 @@ from app.schemas.dashboard import DashboardRegisterRequest
 from app.services.dashboard_engine import generate_dashboard
 from app.services.dashboard_validation import validate_dashboard
 
-
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
 
 @router.get("/dashboard/{name}")
 def get_dashboard(name: str) -> dict:

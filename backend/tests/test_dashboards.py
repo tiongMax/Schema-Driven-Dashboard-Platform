@@ -6,7 +6,6 @@ from app.repositories.dashboard_store import dashboard_store
 from app.repositories.data_store import data_store
 from app.repositories.schema_registry import schema_registry
 
-
 client = TestClient(app)
 
 
@@ -18,15 +17,18 @@ def cleanup():
 
 
 def register_trade_schema():
-    return client.post("/schema", json={
-        "name": "trade",
-        "fields": [
-            {"name": "tradeId", "type": "string"},
-            {"name": "amount", "type": "number"},
-            {"name": "status", "type": "string"},
-            {"name": "settled", "type": "boolean"},
-        ],
-    })
+    return client.post(
+        "/schema",
+        json={
+            "name": "trade",
+            "fields": [
+                {"name": "tradeId", "type": "string"},
+                {"name": "amount", "type": "number"},
+                {"name": "status", "type": "string"},
+                {"name": "settled", "type": "boolean"},
+            ],
+        },
+    )
 
 
 def valid_dashboard():
@@ -116,10 +118,13 @@ def test_duplicate_table_columns_are_rejected_structurally():
     assert "duplicate columns in table view" in response.text
 
 
-@pytest.mark.parametrize("view", [
-    {"type": "chart", "field": "amount"},
-    {"type": "summary", "field": "amount", "aggregation": "median"},
-])
+@pytest.mark.parametrize(
+    "view",
+    [
+        {"type": "chart", "field": "amount"},
+        {"type": "summary", "field": "amount", "aggregation": "median"},
+    ],
+)
 def test_invalid_view_shapes_are_rejected(view):
     register_trade_schema()
     payload = valid_dashboard()
@@ -151,14 +156,20 @@ def test_get_dashboard_computes_views_and_normalizes_missing_values():
         for aggregation in ["sum", "avg", "count", "min", "max"]
     ] + [{"type": "table", "columns": ["tradeId", "amount", "status"]}]
     assert client.post("/dashboard", json=payload).status_code == 201
-    assert client.post("/ingest", json={
-        "schema": "trade",
-        "rows": [
-            {"tradeId": "T1", "amount": 100, "status": "done"},
-            {"tradeId": "T2", "status": "pending"},
-            {"tradeId": "T3", "amount": 50, "status": "done"},
-        ],
-    }).status_code == 201
+    assert (
+        client.post(
+            "/ingest",
+            json={
+                "schema": "trade",
+                "rows": [
+                    {"tradeId": "T1", "amount": 100, "status": "done"},
+                    {"tradeId": "T2", "status": "pending"},
+                    {"tradeId": "T3", "amount": 50, "status": "done"},
+                ],
+            },
+        ).status_code
+        == 201
+    )
 
     response = client.get("/dashboard/trade-dashboard")
 

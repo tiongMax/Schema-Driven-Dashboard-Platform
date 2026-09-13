@@ -6,10 +6,10 @@ all the standard routers needed for the backend services.
 """
 
 from fastapi import FastAPI
+
 from app.api.routes.dashboards import router as dashboard_router
 from app.api.routes.ingest import router as ingest_router
 from app.api.routes.schemas import router as schema_router
-
 
 app = FastAPI(
     title="Schema-Driven Dashboard API",

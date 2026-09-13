@@ -9,7 +9,6 @@ from typing import Any
 
 from app.schemas.dashboard import DashboardRegisterRequest
 
-
 ALLOWED_AGGREGATIONS: dict[str, set[str]] = {
     "number": {"sum", "avg", "count", "min", "max"},
     "string": {"count"},
@@ -42,29 +41,35 @@ def validate_dashboard(
         if view.type == "summary":
             field = fields.get(view.field)
             if field is None:
-                errors.append({
-                    "view_index": view_index,
-                    "field": view.field,
-                    "message": "Unknown field",
-                })
+                errors.append(
+                    {
+                        "view_index": view_index,
+                        "field": view.field,
+                        "message": "Unknown field",
+                    }
+                )
                 continue
 
             if view.aggregation not in ALLOWED_AGGREGATIONS[field["type"]]:
-                errors.append({
-                    "view_index": view_index,
-                    "field": view.field,
-                    "message": (
-                        f"Aggregation '{view.aggregation}' is not supported "
-                        f"for field type '{field['type']}'"
-                    ),
-                })
+                errors.append(
+                    {
+                        "view_index": view_index,
+                        "field": view.field,
+                        "message": (
+                            f"Aggregation '{view.aggregation}' is not supported "
+                            f"for field type '{field['type']}'"
+                        ),
+                    }
+                )
         else:
             for column in view.columns:
                 if column not in fields:
-                    errors.append({
-                        "view_index": view_index,
-                        "field": column,
-                        "message": "Unknown field",
-                    })
+                    errors.append(
+                        {
+                            "view_index": view_index,
+                            "field": column,
+                            "message": "Unknown field",
+                        }
+                    )
 
     return errors

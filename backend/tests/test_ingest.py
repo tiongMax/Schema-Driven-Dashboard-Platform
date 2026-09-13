@@ -1,11 +1,12 @@
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 from app.main import app
 from app.repositories.data_store import data_store
 from app.repositories.schema_registry import schema_registry
 
 client = TestClient(app)
+
 
 @pytest.fixture(autouse=True)
 def cleanup():
@@ -24,30 +25,30 @@ def test_ingest_schema_not_found():
 def test_ingest_success_and_storage():
     """Test fully valid batch is successfully ingested and stored."""
     # Register schema
-    client.post("/schema", json={
-        "name": "trade",
-        "fields": [
-            {"name": "symbol", "type": "string", "required": True},
-            {"name": "price", "type": "number", "required": False},
-        ]
-    })
-    
+    client.post(
+        "/schema",
+        json={
+            "name": "trade",
+            "fields": [
+                {"name": "symbol", "type": "string", "required": True},
+                {"name": "price", "type": "number", "required": False},
+            ],
+        },
+    )
+
     payload = {
         "schema": "trade",
-        "rows": [
-            {"symbol": "AAPL", "price": 10.5},
-            {"symbol": "NVDA"}
-        ]
+        "rows": [{"symbol": "AAPL", "price": 10.5}, {"symbol": "NVDA"}],
     }
-    
+
     # Ingest rows
     response = client.post("/ingest", json=payload)
     assert response.status_code == 201
-    
+
     data = response.json()
     assert data["success"] is True
     assert data["rows_ingested"] == 2
-    
+
     # Verify data successfully reached the DataStore
     stored = data_store.get_rows("trade")
     assert len(stored) == 2
@@ -56,13 +57,16 @@ def test_ingest_success_and_storage():
 
 def test_repeated_rows_are_not_stored_twice():
     """Submitting the same data twice should not duplicate dashboard rows."""
-    client.post("/schema", json={
-        "name": "trade",
-        "fields": [
-            {"name": "tradeId", "type": "string", "required": True},
-            {"name": "amount", "type": "number", "required": True},
-        ],
-    })
+    client.post(
+        "/schema",
+        json={
+            "name": "trade",
+            "fields": [
+                {"name": "tradeId", "type": "string", "required": True},
+                {"name": "amount", "type": "number", "required": True},
+            ],
+        },
+    )
     payload = {
         "schema": "trade",
         "rows": [
@@ -98,31 +102,34 @@ def test_rows_with_the_same_shape_remain_isolated_by_schema():
 def test_ingest_failure_nothing_stored():
     """Test atomic batch ingestion: if one fails, nothing is stored."""
     # Register schema
-    client.post("/schema", json={
-        "name": "trade",
-        "fields": [
-            {"name": "symbol", "type": "string", "required": True},
-        ]
-    })
-    
+    client.post(
+        "/schema",
+        json={
+            "name": "trade",
+            "fields": [
+                {"name": "symbol", "type": "string", "required": True},
+            ],
+        },
+    )
+
     payload = {
         "schema": "trade",
         "rows": [
-            {"symbol": "AAPL"}, # valid
-            {"price": 10.5},    # invalid (missing symbol, unknown field)
-        ]
+            {"symbol": "AAPL"},  # valid
+            {"price": 10.5},  # invalid (missing symbol, unknown field)
+        ],
     }
-    
+
     # Ingest
     response = client.post("/ingest", json=payload)
     assert response.status_code == 422
-    
+
     # Verify structural HTTP response detail
     detail = response.json()["detail"]
     assert detail["message"] == "Batch validation failed"
     assert len(detail["row_errors"]) == 1
     assert detail["row_errors"][0]["row_index"] == 1
-    
+
     # Data Store should be inherently empty despite row 0 being valid
     stored = data_store.get_rows("trade")
     assert len(stored) == 0
@@ -130,20 +137,20 @@ def test_ingest_failure_nothing_stored():
 
 def test_data_store_mutation_guard():
     """Test DataStore safely deep/shallow copies to prevent upstream changes mutating storage."""
-    client.post("/schema", json={
-        "name": "trade",
-        "fields": [{"name": "symbol", "type": "string"}]
-    })
-    
+    client.post(
+        "/schema",
+        json={"name": "trade", "fields": [{"name": "symbol", "type": "string"}]},
+    )
+
     # Original list of references
     rows = [{"symbol": "AAPL"}]
     payload = {"schema": "trade", "rows": rows}
-    
+
     client.post("/ingest", json=payload)
-    
+
     # Attempt to mutate the upstream object structure
     rows[0]["symbol"] = "MUTATED"
-    
+
     # Storage should be inherently protected
     stored = data_store.get_rows("trade")
     assert stored[0]["symbol"] == "AAPL"

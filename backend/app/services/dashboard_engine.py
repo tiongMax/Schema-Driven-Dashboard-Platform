@@ -38,7 +38,7 @@ def compute_summary(
     values = [row[field] for row in rows if field in row]
     if not values:
         return 0 if aggregation in {"sum", "count"} else None
-    
+
     if aggregation == "count":
         return len(values)
     if aggregation == "sum":
@@ -70,10 +70,7 @@ def compute_table(
     Returns:
         list[dict[str, Any]]: Projected rows with a consistent column shape.
     """
-    return [
-        {column: row.get(column) for column in columns}
-        for row in rows
-    ]
+    return [{column: row.get(column) for column in columns} for row in rows]
 
 
 def compute_view(

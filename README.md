@@ -125,19 +125,6 @@ Status codes:
 422 Unprocessable Entity invalid request/schema definition
 ```
 
-## `GET /schema`
-
-Returns all registered schemas.
-
-## `GET /schema/{name}`
-
-Returns one registered schema.
-
-```text
-200 OK
-404 Not Found
-```
-
 ---
 
 # Schema Design & Validation
